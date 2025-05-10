@@ -1,0 +1,37 @@
+version: '3.2'
+
+services:
+  changedetection:
+    image: ghcr.io/dgtlmoon/changedetection.io:latest
+    container_name: changedetection
+    hostname: changedetection
+    volumes:
+      - changedetection-data:/datastore
+    environment:
+      - PORT=5000
+      - PUID=1000
+      - PGID=1000
+      # Ensure this URL matches the name of the playwright service
+      - PLAYWRIGHT_DRIVER_URL=ws://playwright-chrome:3000/?headless=false
+    ports:
+      - 5000:5000
+    restart: unless-stopped
+    depends_on:
+      - playwright-chrome
+
+  playwright-chrome:
+    hostname: playwright-chrome
+    image: ghcr.io/browserless/chrome
+    restart: unless-stopped
+    environment:
+      - SCREEN_WIDTH=1920
+      - SCREEN_HEIGHT=1024
+      - SCREEN_DEPTH=16
+      - ENABLE_DEBUGGER=false
+      # Increased connection timeout to reduce chances of timeout errors
+      - TIMEOUT=600000  # Now 10 minutes
+      # Increased concurrent sessions for better parallel processing
+      - CONCURRENT=15
+      
+volumes:
+  changedetection-data:
